@@ -79,3 +79,21 @@ get the average of the gaze probabilities of a certain grid.
     #all_smoothed_pixel_list['y'].append(i)
     #all_smoothed_pixel_list['smoothed'].append(smoothed_pixel_by_frame)
     return(smoothed_pixel_by_frame)
+
+def generate_list(n):
+    # Start with 30 and add 60 to each subsequent number until we reach n.
+    num = 30
+    lst = [num]
+    while num < n:
+        num += 60
+        lst.append(num)
+
+    # Determine which of the last two numbers in the list is closer to n.
+    last_num = lst[-1]
+    prev_num = lst[-2]
+    if abs(last_num - n) < abs(prev_num - n):
+        # If the last number is closer to n, return the full list.
+        return lst
+    else:
+        # If the second-to-last number is closer to n, remove the last number and add the second-to-last.
+        return lst[:-1] + [prev_num]
