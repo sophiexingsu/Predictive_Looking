@@ -1,0 +1,203 @@
+---
+title: "Predictive_Looking_Analysis"
+author: "Sophie Su"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## Read in the data and relevant pacakges 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(knitr)
+library(tidyverse)
+library(magrittr)
+library(lme4)
+opts_chunk$set(message=FALSE, warning=FALSE)
+library(stats)
+#library(jtools)
+library(broom)
+library(arm)
+library(grDevices)
+library(nlme)
+data_file_path<-"insert your datafile here"
+cl1 <- glmerControl(optimizer = "bobyqa", calc.derivs = FALSE,
+    optCtrl = list(maxfun = 1e+09), check.conv.grad = .makeCC("warning",
+        tol = 0.002, relTol = NULL), check.conv.singular = .makeCC(action = "message",
+        tol = 1e-09), check.conv.hess = .makeCC(action = "warning",
+        tol = 0.000001))
+c1=lmeControl(maxIter=100000, msMaxIter=100000, niterEM=300, msMaxEval=100000, tolerance=.000001,msTol=.0000001,returnObject=TRUE,minAbsParApVar=.05, opt = c("nlminb"), optimMethod="BFGS")
+#read into the dataframe  
+all_movie<-read.csv("your_predictive_looking_data.csv", header = TRUE, sep = ",")
+
+```
+
+## Stepwise model comparsion approach to examine predictive looking.
+```{r}
+m15=glmer(hand_bino ~gaze_value + gaze_past1+gaze_past2+gaze_past3+gaze_past4+gaze_past5+gaze_past6+gaze_past7+gaze_past8+gaze_past9+gaze_past10+gaze_past11+gaze_past12+gaze_past13+gaze_past14+(1|grid)+(1|movie),data=all_movie,family = "binomial"("logit"),control=cl1)
+model_data=na.omit(all_movie[ , c(all.vars(formula(m15)),"frame")])
+m14=glmer(hand_bino ~gaze_value + gaze_past1+gaze_past2+gaze_past3+gaze_past4+gaze_past5+gaze_past6+gaze_past7+gaze_past8+gaze_past9+gaze_past10+gaze_past11+gaze_past12+gaze_past13+(1|grid)+(1|movie),data=model_data,family = "binomial"("logit"),control=cl1)
+m13=glmer(hand_bino ~gaze_value + gaze_past1+gaze_past2+gaze_past3+gaze_past4+gaze_past5+gaze_past6+gaze_past7+gaze_past8+gaze_past9+gaze_past10+gaze_past11+gaze_past12+(1|grid)+(1|movie),data=model_data,family = "binomial"("logit"),control=cl1)
+m12=glmer(hand_bino ~gaze_value + gaze_past1+gaze_past2+gaze_past3+gaze_past4+gaze_past5+gaze_past6+gaze_past7+gaze_past8+gaze_past9+gaze_past10+gaze_past11+(1|grid)+(1|movie),data=model_data,family = "binomial"("logit"),control=cl1)
+m11=glmer(hand_bino ~gaze_value + gaze_past1+gaze_past2+gaze_past3+gaze_past4+gaze_past5+gaze_past6+gaze_past7+gaze_past8+gaze_past9+gaze_past10+(1|grid)+(1|movie),data=model_data,family = "binomial"("logit"),control=cl1)
+m10=glmer(hand_bino ~gaze_value + gaze_past1+gaze_past2+gaze_past3+gaze_past4+gaze_past5+gaze_past6+gaze_past7+gaze_past8+gaze_past9+(1|grid)+(1|movie),data=model_data,family = "binomial"("logit"),control=cl1)
+m9=glmer(hand_bino ~gaze_value + gaze_past1+gaze_past2+gaze_past3+gaze_past4+gaze_past5+gaze_past6+gaze_past7+gaze_past8+(1|grid)+(1|movie),data=model_data,family = "binomial"("logit"),control=cl1)
+m8=glmer(hand_bino ~gaze_value + gaze_past1+gaze_past2+gaze_past3+gaze_past4+gaze_past5+gaze_past6+gaze_past7+(1|grid)+(1|movie),data=model_data,,family = "binomial"("logit"),control=cl1)
+m7=glmer(hand_bino ~gaze_value + gaze_past1+gaze_past2+gaze_past3+gaze_past4+gaze_past5+gaze_past6+(1|grid)+(1|movie),data=model_data,,family = "binomial"("logit"),control=cl1)
+#model_data=na.omit(movie1.2.3[ , c(all.vars(formula(m7)),"frame")])
+m1=glmer(hand_bino ~gaze_value+(1|grid)+(1|movie),data=model_data,family = "binomial"("logit"),control=cl1)
+m2=glmer(hand_bino ~gaze_value + gaze_past1+(1|grid)+(1|movie),data=model_data,family = "binomial"("logit"),control=cl1)
+m3=glmer(hand_bino ~gaze_value + gaze_past1+gaze_past2+(1|grid)+(1|movie),data=model_data,family = "binomial"("logit"),control=cl1)
+m4=glmer(hand_bino ~gaze_value + gaze_past1+gaze_past2+gaze_past3+(1|grid)+(1|movie),data=model_data,family = "binomial"("logit"),control=cl1)
+m5=glmer(hand_bino ~gaze_value + gaze_past1+gaze_past2+gaze_past3+gaze_past4+(1|grid)+(1|movie),data=model_data,family = "binomial"("logit"),control=cl1)
+m6=glmer(hand_bino ~gaze_value + gaze_past1+gaze_past2+gaze_past3+gaze_past4+gaze_past5+(1|grid)+(1|movie),data=model_data,family = "binomial"("logit"),control=cl1)
+m15=glmer(hand_bino ~gaze_value + gaze_past1+gaze_past2+gaze_past3+gaze_past4+gaze_past5+gaze_past6+gaze_past7+gaze_past8+gaze_past9+gaze_past10+gaze_past11+gaze_past12+gaze_past13+gaze_past14+(1|grid)+(1|movie),data=model_data,family = "binomial"("logit"),control=cl1)
+AIC=anova(m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11,m12,m13,m14,m15)$AIC 
+BIC=anova(m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11,m12,m13,m14,m15)$BIC
+graph_data=data.frame(model=c("0s","1s","2s","3s","4s","5s","6s","7s","8s","9s","10s","11s","12s","13s","14s"),AIC=AIC, BIC=BIC)
+visual_data<- pivot_longer(graph_data, cols = c("AIC", "BIC"), 
+                        names_to = "Parameter", values_to = "Value")
+visual_data$model <- factor(visual_data$model, levels = c("0s", "1s", "2s", "3s", "4s", "5s", "6s", "7s", "8s", "9s", "10s", "11s", "12s", "13s", "14s"))
+
+
+ggplot(data=visual_data, aes(x=model, y=Value,color=Parameter,group=Parameter))+geom_point()+geom_line(size=2)+scale_color_manual(values = c("BIC" = "green", "AIC" = "black"),guide = "none") +
+labs(x = "Number of previous seconds of eye data in the predictive model")+annotate("text", x = 5, y = 17775, label = "BIC", color = "green")+annotate("text", x = 5, y = 17700, label = "AIC", color = "black")+theme(text = element_text(size = 15),plot.background = element_rect(color = "white"),aspect.ratio = 1)+theme(legend.position = "none")+theme_classic()
+ggsave("model_fit.tiff", units="in", width=7, height=8, dpi=300)
+```
+
+#Predicitve Looking Error and Segmentation Probabilities 
+```{r}
+modeling_10=glmer(hand_bino ~gaze_value + gaze_past1+gaze_past2+gaze_past3+gaze_past4+gaze_past5+gaze_past6+gaze_past7+gaze_past8+gaze_past9+(1|grid)+(1|movie),data=all_movie,family = "binomial"("logit"),control=cl1)
+modeling_10_data=na.omit(all_movie[ , c(all.vars(formula(modeling_10)),"frame")])
+dev_m10<-abs(resid(modeling_10, type="deviance"))
+pear_m10<-abs(resid(modeling_10, type="pearson"))
+work_m10<-abs(resid(modeling_10, type="response"))
+
+PE_data_m10<-data.frame(frame=modeling_10_data$frame,grid=modeling_10_data$grid,eid=paste(modeling_10_data$frame,modeling_10_data$movie),
+                    dev=dev_m10,
+                    pear=pear_m10,
+                    work=work_m10)
+PE_data_m10<-PE_data_m10%>%
+  mutate(Movie=str_sub(eid,-5,-1))%>%
+ mutate(frame=as.numeric(str_sub(eid, start=1,end=-7)))
+```
+
+## Segmentation Probabilities
+```{r}
+frame_rate=59.9
+seg_des<-read.csv("your_segmentation_data.csv")
+seg_des %<>% 
+  #dplyr::filter(Movie=="1.2.3_C1_trim")%>%
+  mutate(frame=round(Time*frame_rate))%>%
+  mutate(Movie=gsub("_C1_trim", "", Movie))%>%
+  mutate(eid=paste(frame, Movie))%>%
+  rename(probability=Segmentation_Prob)%>%
+  dplyr::select("frame", "probability","Condition","eid","Movie")
+```
+
+# plot the relationship between predicitve looking error and segmentation probabilites
+```{r}
+combined_model_10<-left_join(PE_data_m10, seg_des, by="eid")
+combined_model_10 <- na.omit(combined_model_10)
+model1<-lmer(probability ~dev*Condition+(1|grid)+(1|Movie.x)+(1|frame.x),data=combined_model_10,control = lmerControl(optimizer = "bobyqa"))
+
+summary(model1)
+combined_model_10$estimated_prob=predict(model1)
+
+combined_model_10_scaled<-combined_model_10%>%
+  group_by(Movie.x)%>%
+  mutate(scaled_dev=scale(dev))%>%
+  ungroup()%>%
+  group_by(Movie.x, Condition)%>%
+  mutate(scaled_est_prob=scale(estimated_prob))
+combined_model_10_scaled%>%
+  group_by(Movi.x)%>%
+  summarise(mean_dev=mean(scaled_est_prob, na.rm=TRUE))
+combined_model_10_scaled <- combined_model_10_scaled %>%
+  mutate(Movie = dplyr::recode(Movie.x,
+                          "1.2.3" = "Exercise",
+                          "2.4.1" = "Grooming",
+                          "3.1.3" = "Breakfast",
+                          "6.3.9" = "Cleaning"))
+
+combined_model_10_scaled%>%
+ggplot(aes(x=scaled_dev, y = scaled_est_prob,color=Condition))+geom_smooth(method="lm",se=TRUE)+facet_grid( ~ Movie)+labs(x="Scaled Predictive Looking Error", y="Estimated Segmentation Probability")+
+  scale_y_continuous(name="Estimated Segmentation Probability",breaks=seq(-1,1,1))
+  theme_classic() +  # Use a minimal theme
+    annotate("text", x = 3, y = 0.018, label = "coarse", color = "red", hjust = 1, vjust = 1, size = 3) +
+    annotate("text", x = 3, y = 0.040, label = "fine", color = "blue", hjust = 1, vjust = 1, size = 3)+theme(legend.position = "none")
+  
+  
+combined_model_10_scaled %>%
+    group_by(Condition, Movie.x) %>%
+    mutate(scaled_est_prob_new = scale(estimated_prob)) %>%
+    ggplot(aes(x = scaled_dev, y = scaled_est_prob_new, color = Condition)) +
+    geom_smooth(method = "lm", se = TRUE) +
+    facet_wrap(~ Movie, nrow = 2, scales = "fixed") +  # Use facet_wrap with nrow set to 2
+    theme(aspect.ratio = 1)+labs(x="Scaled Predictive Looking Error", y="Scaled Estimated Segmentation Probability")+
+  scale_color_manual(values = c("coarse" = "red", "fine" = "blue"))+
+  theme_classic() +  # Use a minimal theme
+    annotate("text", x = 4.5, y = 0.3, label = "coarse", color = "red", hjust = 1, vjust = 1, size=5) +
+    annotate("text", x = 4.5, y = 0.4, label = "fine", color = "blue", hjust = 1, vjust = 1, size=5)+theme(legend.position = "none")+
+  theme(text = element_text(size = 20),
+        plot.background = element_rect(color = "white"),
+        aspect.ratio = 1)
+
+ggsave("PE_Seg_Prob.tiff", units="in", width=7, height=8, dpi=300)
+```
+
+## Updating Signals VS predictive looking errors 
+```{r}
+setwd("DATA_DIRECTORY")
+PE_eye_uncertainty=read.csv("SEM'S PERFORMANCE DATA")%>%
+  dplyr::select("eid","dev", "Movie.x", "frame.x", "sem_uncertainty", "grid")%>%
+  rename(Movie=Movie.x,
+         frame=frame.x, 
+         eye_PE=dev
+         )%>%
+  mutate(eid=paste(eid, grid))
+# dataset with SEM's prediction error and predictive looking error
+PE_eye_SEM=read.csv("SEM'S OTHER PERFORMANCE DATAS")%>%
+  dplyr::select("eid","dev", "Movie.x", "frame.x", "sem_pe", "grid")%>%
+  rename(Movie=Movie.x,
+         frame=frame.x, 
+         eye_PE=dev)%>%
+  mutate(eid=paste(eid,grid ))
+
+eye_SEM<-left_join(PE_eye_SEM, PE_eye_uncertainty, by="eid")%>%
+  dplyr::select("eid","eye_PE.x","sem_uncertainty", "Movie.x", "frame.x", "sem_pe", "grid.x")%>%
+  rename(Movie=Movie.x,
+         frame=frame.x, 
+         eye_PE=eye_PE.x,
+         grid=grid.x)
+names(eye_SEM)
+eye_SEM<-eye_SEM%>%
+  group_by(Movie)%>%
+  mutate(sem_pe_scaled=scale(sem_pe),
+         eye_PE_scaled=scale(eye_PE), 
+         sem_uncertainty_scaled=scale(sem_uncertainty))
+eye_SEM_visual<-eye_SEM%>%
+  dplyr::select(sem_pe_scaled,eye_PE_scaled, sem_uncertainty_scaled, Movie )
+eye_SEM_visual %>%
+  mutate(Movie = case_when(
+   Movie == "1.2.3" ~ "Exercise",
+    Movie == "2.4.1" ~ "Grooming",
+    Movie == "3.1.3" ~ "Breakfast",
+   Movie=="6.3.9" ~ "Cleaning",
+    TRUE ~ Movie  # Keep other values unchanged
+  ))%>%
+  pivot_longer(cols = c(sem_pe_scaled, sem_uncertainty_scaled),
+               names_to = "signals",
+               values_to = "value")%>%
+  ggplot(aes(x=eye_PE_scaled, y=value, color = signals))+
+  geom_smooth(method="lm")+facet_wrap(~ Movie, nrow = 2, scales = "fixed")+theme(aspect.ratio = 1)+labs(x="Scaled Predictive Looking Error", y="Scaled Model Updating Signals")+
+  scale_color_manual(values = c("sem_pe_scaled" = "darkred", "sem_uncertainty_scaled" = "purple")) +
+  theme_classic() +  # Use a minimal theme
+   annotate("text", x = 9, y = 0.8, label = "Prediction Error", color = "darkred", hjust = 1, vjust = 1, size = 5) +
+    annotate("text", x = 9, y = 0.7, label = "Prediction Uncertainty", color = "purple", hjust = 1, vjust = 1, size = 5)+theme(legend.position = "none")+
+  theme(text = element_text(size = 20),
+        plot.background = element_rect(color = "white"),
+        aspect.ratio = 1)
+
+ggsave("Signals_Seg_Prob.tiff", units="in", width=7, height=8, dpi=300)
+```
