@@ -20,7 +20,8 @@ library(broom)
 library(arm)
 library(grDevices)
 library(nlme)
-data_file_path<-"insert your datafile here"
+data_file_path<-"/Users/sophie/Library/CloudStorage/Box-Box/Predictive_Looking/data"
+setwd(data_file_path)
 cl1 <- glmerControl(optimizer = "bobyqa", calc.derivs = FALSE,
     optCtrl = list(maxfun = 1e+09), check.conv.grad = .makeCC("warning",
         tol = 0.002, relTol = NULL), check.conv.singular = .makeCC(action = "message",
@@ -28,7 +29,7 @@ cl1 <- glmerControl(optimizer = "bobyqa", calc.derivs = FALSE,
         tol = 0.000001))
 c1=lmeControl(maxIter=100000, msMaxIter=100000, niterEM=300, msMaxEval=100000, tolerance=.000001,msTol=.0000001,returnObject=TRUE,minAbsParApVar=.05, opt = c("nlminb"), optimMethod="BFGS")
 #read into the dataframe  
-all_movie<-read.csv("your_predictive_looking_data.csv", header = TRUE, sep = ",")
+all_movie<-read.csv("all_movie.csv", header = TRUE, sep = ",")
 
 ```
 
@@ -85,7 +86,7 @@ PE_data_m10<-PE_data_m10%>%
 ## Segmentation Probabilities
 ```{r}
 frame_rate=59.9
-seg_des<-read.csv("your_segmentation_data.csv")
+seg_des<-read.csv("/Users/sophie/Library/CloudStorage/Box-Box/Predictive_Looking/data/segmentation_probability_sampled.csv")
 seg_des %<>% 
   #dplyr::filter(Movie=="1.2.3_C1_trim")%>%
   mutate(frame=round(Time*frame_rate))%>%
@@ -111,7 +112,7 @@ combined_model_10_scaled<-combined_model_10%>%
   group_by(Movie.x, Condition)%>%
   mutate(scaled_est_prob=scale(estimated_prob))
 combined_model_10_scaled%>%
-  group_by(Movi.x)%>%
+  group_by(Movie.x)%>%
   summarise(mean_dev=mean(scaled_est_prob, na.rm=TRUE))
 combined_model_10_scaled <- combined_model_10_scaled %>%
   mutate(Movie = dplyr::recode(Movie.x,
@@ -122,10 +123,9 @@ combined_model_10_scaled <- combined_model_10_scaled %>%
 
 combined_model_10_scaled%>%
 ggplot(aes(x=scaled_dev, y = scaled_est_prob,color=Condition))+geom_smooth(method="lm",se=TRUE)+facet_grid( ~ Movie)+labs(x="Scaled Predictive Looking Error", y="Estimated Segmentation Probability")+
-  scale_y_continuous(name="Estimated Segmentation Probability",breaks=seq(-1,1,1))
-  theme_classic() +  # Use a minimal theme
+  scale_y_continuous(name="Estimated Segmentation Probability",breaks=seq(-1,1,1)) +  # Use a minimal theme
     annotate("text", x = 3, y = 0.018, label = "coarse", color = "red", hjust = 1, vjust = 1, size = 3) +
-    annotate("text", x = 3, y = 0.040, label = "fine", color = "blue", hjust = 1, vjust = 1, size = 3)+theme(legend.position = "none")
+    annotate("text", x = 3, y = 0.040, label = "fine", color = "blue", hjust = 1, vjust = 1, size = 3)+theme_classic()+theme(legend.position = "none")
   
   
 combined_model_10_scaled %>%
@@ -146,10 +146,41 @@ combined_model_10_scaled %>%
 ggsave("PE_Seg_Prob.tiff", units="in", width=7, height=8, dpi=300)
 ```
 
+### Cross correlation between Predictive Looking Error and Segmentation Probabilities
+```{r}
+cross_correlation_results<-data.frame()
+combined_model_10_cross_compare<-combined_model_10%>%
+  mutate(Movie.x = case_when(
+    Movie.x == "1.2.3" ~ "Exercise",
+    Movie.x == "2.4.1" ~ "Grooming",
+    Movie.x == "3.1.3" ~ "Breakfast",
+    Movie.x == "6.3.9"~ "Cleaning",
+    TRUE ~ "Other Movie" # TRUE here means for all other cases
+  ))
+for(m in unique(combined_model_10_cross_compare$Movie.x)){
+  for(i in c("coarse","fine")){
+    d=str_to_title(i)
+    dev=na.omit(combined_model_10_cross_compare$dev[combined_model_10_cross_compare$Movie.x==m&combined_model_10_cross_compare$Condition==i])
+    probability=na.omit(combined_model_10_cross_compare$probability[combined_model_10_cross_compare$Movie.x==m&combined_model_10_cross_compare$Condition==i])
+    png(paste0(data_file_path,"cross_cor_movie",m,"condition", i, ".png"),width = 800, height = 600)
+    ccf_result <- ccf(dev, probability, lag.max = NULL, plot =  TRUE, main = paste0("For Movie ", m," and ", d," Segmentation Probability"))
+    #plot()
+    dev.off()
+    temp=data.frame(movie=m, condition=i, max_corr_lag =ccf_result$lag[which.max(ccf_result$acf)])
+    cross_correlation_results<-rbind(cross_correlation_results, temp)
+  }
+}
+#print(cross_correlation_results)
+write.csv(cross_correlation_results, "cross_correlation_results.csv")
+```
+
+
+
+
 ## Updating Signals VS predictive looking errors 
 ```{r}
-setwd("DATA_DIRECTORY")
-PE_eye_uncertainty=read.csv("SEM'S PERFORMANCE DATA")%>%
+setwd(data_file_path)
+PE_eye_uncertainty=read.csv("PE_eye_uncertainty_cleaned.csv")%>%
   dplyr::select("eid","dev", "Movie.x", "frame.x", "sem_uncertainty", "grid")%>%
   rename(Movie=Movie.x,
          frame=frame.x, 
@@ -157,7 +188,7 @@ PE_eye_uncertainty=read.csv("SEM'S PERFORMANCE DATA")%>%
          )%>%
   mutate(eid=paste(eid, grid))
 # dataset with SEM's prediction error and predictive looking error
-PE_eye_SEM=read.csv("SEM'S OTHER PERFORMANCE DATAS")%>%
+PE_eye_SEM=read.csv("PE_eye_SEM_cleaned.csv")%>%
   dplyr::select("eid","dev", "Movie.x", "frame.x", "sem_pe", "grid")%>%
   rename(Movie=Movie.x,
          frame=frame.x, 
