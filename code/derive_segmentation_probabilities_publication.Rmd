@@ -1,0 +1,102 @@
+---
+title: "derive_segmentation_probabilites"
+author: "Sophie Su"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## Document Description
+This document outlines the script used to derive segmentation probabilities based on button presses from two separate studies. To calculate the segmentation probabilities, we applied Gaussian smoothing with a bandwidth of 2 seconds. Time points were selected to align with the sampling rate of the hand locations.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(tidyverse)
+library(magrittr)
+library(lme4)
+opts_chunk$set(message=FALSE, warning=FALSE)
+library(stats)
+#library(jtools)
+library(broom)
+library(arm)
+library(grDevices)
+library(nlme)
+movie_information=data.frame(Movie=c("1.2.3_C1_trim",
+                                     "2.4.1_C1_trim",
+                                     "3.1.3_C1_trim",
+                                     "6.3.9_C1_trim"),
+                            duration=c(586.103000,
+                                       645.796000,
+                                       585.936000,
+                                       679.429000))
+#set the directory to where this file existed 
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+```
+
+## segmentation probability 
+```{r}
+setwd("/Users/sophie/Library/CloudStorage/Box-Box/Predictive_Looking/data/")
+seg_prob<-read.csv("seg_combined.csv")
+frame_rate=59.9 
+#sampled_frame=c()
+#sampled_timepoint=sampled_frame/frame_rate
+seg_prob=data.frame()
+hand_smoothed_grid_list_60=c("movie_123_smoothed_60_by_grids.csv","movie_241_smoothed_60_by_grids.csv","movie_313_smoothed_60_by_grids.csv","movie_639_smoothed_60_by_grids.csv") 
+for(m in unique(seg_combined$Movie)){
+  index=substr(gsub("\\.", "", m),1,3) 
+  hand_data=read.csv(hand_smoothed_grid_list_60[grep(index,hand_smoothed_grid_list_60)])
+  frame=unique(hand_data$frame)
+  sampled_time=frame/frame_rate
+  for (c in unique(seg_combined$Condition)){
+    foo<-density(seg_combined$Sec[seg_combined$Condition==c&seg_combined$Movie==m],
+                 n=round(movie_information$duration[movie_information$Movie==m]),
+                 from=0, to=round(movie_information$duration[movie_information$Movie==m]),bw=2) 
+    Time<-sampled_time
+    sampled_density <- approx(foo$x,foo$y, xout = Time)
+    scale<-length(seg_combined$Sec[seg_combined$Condition==c&seg_combined$Movie==m])/length(unique(seg_combined$SubjNum[seg_combined$Condition==c&seg_combined$Movie==m]))
+    temp<-data.frame(Time=Time,Segmentation_Prob=scale*sampled_density$y)
+    temp$Movie=m
+    temp$Condition=c
+    seg_prob=rbind(seg_prob,temp)
+  }
+}
+```
+
+### visualization 
+```{r} 
+seg_prob%>%
+   mutate(Movie = case_when(
+   Movie == "1.2.3_C1_trim" ~ "Exercise",
+    Movie == "2.4.1_C1_trim" ~ "Grooming",
+    Movie == "3.1.3_C1_trim" ~ "Breakfast",
+   Movie=="6.3.9_C1_trim" ~ "Cleaning",
+    TRUE ~ Movie  # Keep other values unchanged
+  ))%>%
+  ggplot(aes(x=Time, y=Segmentation_Prob, color=Condition))+facet_wrap(~Movie,ncol =2)+geom_line()+labs(x="Time (s)", y="Segmentation Probability")
+ggsave("~/Library/CloudStorage/Box-Box/DCL_ARCHIVE/Documents/Events/exp159_EyetrackingSEM/master_thesis/figure2.pdf")
+```
+
+## visualization for publication
+```{r}
+seg_prob %>%
+    mutate(Movie = case_when(
+        Movie == "1.2.3_C1_trim" ~ "Exercise",
+        Movie == "2.4.1_C1_trim" ~ "Grooming",
+        Movie == "3.1.3_C1_trim" ~ "Breakfast",
+        Movie == "6.3.9_C1_trim" ~ "Cleaning",
+        TRUE ~ Movie  # Keep other values unchanged
+    )) %>%
+    ggplot(aes(x = Time, y = Segmentation_Prob, color = Condition)) +
+    facet_wrap(~ Movie, ncol = 2) +
+    geom_line() +
+    labs(x = "Time (s)", y = "Segmentation Probability") +
+    scale_color_manual(values = c("coarse" = "red", "fine" = "blue")) +
+    theme_classic() +  # Use a minimal theme
+    annotate("text", x = 460, y = 0.16, label = "coarse", color = "red", hjust = 1, vjust = 1, size = 5) +
+    annotate("text", x = 460, y = 0.2, label = "fine", color = "blue", hjust = 1, vjust = 1, size = 5)+theme(legend.position = "none")+theme(text = element_text(size = 20),
+        plot.background = element_rect(color = "white"),
+        aspect.ratio = 1)
+ggsave("Seg_Prob_Movie.tiff", units="in", width=7, height=8, dpi=300)
+```
+
+
