@@ -146,8 +146,9 @@ seg_prob %>%
         Movie == "6.3.9_C1_trim" ~ "Cleaning",
         TRUE ~ Movie  # Keep other values unchanged
     )) %>%
+  mutate(Combined = paste(Movie, Condition, sep = "-"))%>%
     ggplot(aes(x = Time, y = Segmentation_Prob, color = Dataset)) +
-    facet_wrap(Condition~ Movie, ncol = 4) +
+    facet_wrap(~ Combined, ncol = 4) +
     geom_line() +
     labs(x = "Time (s)", y = "Segmentation Probability") +
     scale_color_manual(values = c("first_dataset" = "lightblue", "second_dataset" = "darkblue")) +

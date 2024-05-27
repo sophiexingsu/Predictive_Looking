@@ -1,0 +1,9 @@
+"","movie","condition","max_corr_lag"
+"1","Exercise","coarse",20
+"2","Exercise","fine",32
+"3","Grooming","coarse",0
+"4","Grooming","fine",2
+"5","Breakfast","coarse",0
+"6","Breakfast","fine",0
+"7","Cleaning","coarse",2
+"8","Cleaning","fine",20

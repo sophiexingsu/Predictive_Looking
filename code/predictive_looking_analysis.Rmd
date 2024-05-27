@@ -147,7 +147,7 @@ ggsave("PE_Seg_Prob.tiff", units="in", width=7, height=8, dpi=300)
 ```
 
 ### Cross correlation between Predictive Looking Error and Segmentation Probabilities
-```{r}
+```{r} 
 cross_correlation_results<-data.frame()
 combined_model_10_cross_compare<-combined_model_10%>%
   mutate(Movie.x = case_when(
@@ -163,7 +163,7 @@ for(m in unique(combined_model_10_cross_compare$Movie.x)){
     dev=na.omit(combined_model_10_cross_compare$dev[combined_model_10_cross_compare$Movie.x==m&combined_model_10_cross_compare$Condition==i])
     probability=na.omit(combined_model_10_cross_compare$probability[combined_model_10_cross_compare$Movie.x==m&combined_model_10_cross_compare$Condition==i])
     png(paste0(data_file_path,"cross_cor_movie",m,"condition", i, ".png"),width = 800, height = 600)
-    ccf_result <- ccf(dev, probability, lag.max = NULL, plot =  TRUE, main = paste0("For Movie ", m," and ", d," Segmentation Probability"))
+    ccf_result <- ccf(dev, probability, lag.max = NULL, plot =  TRUE, main = paste0(d," Segmentation Probability", "&", "Prediction Error for',  m,"))
     #plot()
     dev.off()
     temp=data.frame(movie=m, condition=i, max_corr_lag =ccf_result$lag[which.max(ccf_result$acf)])
