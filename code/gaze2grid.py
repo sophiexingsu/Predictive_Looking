@@ -5,7 +5,14 @@ import itertools
 from pandas import DataFrame
 from utils import Fixpos2Densemap, get_mean 
 
-#set the parameters 
+# Description:
+# This script transforms raw fixation data into a grid-based gaze density map. 
+# It averages gaze data per subject and computes the mean gaze density for each grid cell.
+# This is useful for analyzing gaze patterns across different regions of a visual stimulus.
+# For replication or extension of this work, refer to gaze2grid_replication.py.
+
+# Set parameters
+
 y_dimension=720 
 x_dimension=1280
 y_grid_number=6 
