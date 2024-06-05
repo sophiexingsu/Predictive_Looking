@@ -5,7 +5,11 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
-## Read in the data and relevant pacakges 
+# Predictive Modeling Errors
+
+This R Markdown file contains the code to analyze predictive modeling errors and reproduce the figures in the manuscript.
+
+### Read in the data and relevant pacakges 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
@@ -20,7 +24,7 @@ library(broom)
 library(arm)
 library(grDevices)
 library(nlme)
-data_file_path<-"/Users/sophie/Library/CloudStorage/Box-Box/Predictive_Looking/data"
+data_file_path <- getwd()
 setwd(data_file_path)
 cl1 <- glmerControl(optimizer = "bobyqa", calc.derivs = FALSE,
     optCtrl = list(maxfun = 1e+09), check.conv.grad = .makeCC("warning",
@@ -29,7 +33,7 @@ cl1 <- glmerControl(optimizer = "bobyqa", calc.derivs = FALSE,
         tol = 0.000001))
 c1=lmeControl(maxIter=100000, msMaxIter=100000, niterEM=300, msMaxEval=100000, tolerance=.000001,msTol=.0000001,returnObject=TRUE,minAbsParApVar=.05, opt = c("nlminb"), optimMethod="BFGS")
 #read into the dataframe  
-all_movie<-read.csv("all_movie.csv", header = TRUE, sep = ",")
+all_movie<-read.csv("../data/all_movie.csv", header = TRUE, sep = ",")
 
 ```
 
@@ -163,7 +167,7 @@ for(m in unique(combined_model_10_cross_compare$Movie.x)){
     dev=na.omit(combined_model_10_cross_compare$dev[combined_model_10_cross_compare$Movie.x==m&combined_model_10_cross_compare$Condition==i])
     probability=na.omit(combined_model_10_cross_compare$probability[combined_model_10_cross_compare$Movie.x==m&combined_model_10_cross_compare$Condition==i])
     png(paste0(data_file_path,"cross_cor_movie",m,"condition", i, ".png"),width = 800, height = 600)
-    ccf_result <- ccf(dev, probability, lag.max = NULL, plot =  TRUE, main = paste0(d," Segmentation Probability", "&", "Prediction Error for',  m,"))
+    ccf_result <- ccf(dev, probability, lag.max = NULL, plot =  TRUE, main = paste0(m,':',d," Segmentation"))
     #plot()
     dev.off()
     temp=data.frame(movie=m, condition=i, max_corr_lag =ccf_result$lag[which.max(ccf_result$acf)])
@@ -179,8 +183,7 @@ write.csv(cross_correlation_results, "cross_correlation_results.csv")
 
 ## Updating Signals VS predictive looking errors 
 ```{r}
-setwd(data_file_path)
-PE_eye_uncertainty=read.csv("PE_eye_uncertainty_cleaned.csv")%>%
+PE_eye_uncertainty=read.csv("../data/PE_eye_uncertainty_cleaned.csv")%>%
   dplyr::select("eid","dev", "Movie.x", "frame.x", "sem_uncertainty", "grid")%>%
   rename(Movie=Movie.x,
          frame=frame.x, 
@@ -188,7 +191,7 @@ PE_eye_uncertainty=read.csv("PE_eye_uncertainty_cleaned.csv")%>%
          )%>%
   mutate(eid=paste(eid, grid))
 # dataset with SEM's prediction error and predictive looking error
-PE_eye_SEM=read.csv("PE_eye_SEM_cleaned.csv")%>%
+PE_eye_SEM=read.csv("../data/PE_eye_SEM_cleaned.csv")%>%
   dplyr::select("eid","dev", "Movie.x", "frame.x", "sem_pe", "grid")%>%
   rename(Movie=Movie.x,
          frame=frame.x, 
@@ -231,4 +234,19 @@ eye_SEM_visual %>%
         aspect.ratio = 1)
 
 ggsave("Signals_Seg_Prob.tiff", units="in", width=7, height=8, dpi=300)
+```
+
+## Statistical Comparison between Predictive Looking Error and Other SEMs' Updating Mechanisms.
+
+```{r}
+eye_SEM<-eye_SEM%>%
+  group_by(Movie)%>%
+  mutate(eye_PE_sd=scale(eye_PE), 
+         sem_pe_sd=scale(sem_pe), 
+         sem_uncertainty_sd=scale(sem_uncertainty))
+model1<-lme(eye_PE_sd ~ sem_pe_sd, random=~ 1|Movie/grid, data=eye_SEM)
+summary(model1)
+model2<-lme(eye_PE_sd ~ sem_uncertainty_sd,  random=~ 1|Movie/grid, data=eye_SEM)
+summary(model2)
+anova(model1, model2)
 ```

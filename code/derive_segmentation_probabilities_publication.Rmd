@@ -35,13 +35,14 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 ## segmentation probability 
 ```{r}
-setwd("/Users/sophie/Library/CloudStorage/Box-Box/Predictive_Looking/data/")
-seg_combined<-read.csv("seg_combined.csv")
+data_file_path <- getwd()
+setwd(data_file_path)
+seg_combined<-read.csv("../data/seg_combined.csv")
 frame_rate=59.9 
 #sampled_frame=c()
 #sampled_timepoint=sampled_frame/frame_rate
 seg_prob=data.frame()
-hand_smoothed_grid_list_60=c("movie_123_smoothed_60_by_grids.csv","movie_241_smoothed_60_by_grids.csv","movie_313_smoothed_60_by_grids.csv","movie_639_smoothed_60_by_grids.csv") 
+hand_smoothed_grid_list_60=c("../data/movie_123_smoothed_60_by_grids.csv","../data/movie_241_smoothed_60_by_grids.csv","../data/movie_313_smoothed_60_by_grids.csv","../data/movie_639_smoothed_60_by_grids.csv") 
 for(m in unique(seg_combined$Movie)){
   index=substr(gsub("\\.", "", m),1,3) 
   hand_data=read.csv(hand_smoothed_grid_list_60[grep(index,hand_smoothed_grid_list_60)])
@@ -62,19 +63,7 @@ for(m in unique(seg_combined$Movie)){
 }
 ```
 
-### visualization 
-```{r} 
-seg_prob%>%
-   mutate(Movie = case_when(
-   Movie == "1.2.3_C1_trim" ~ "Exercise",
-    Movie == "2.4.1_C1_trim" ~ "Grooming",
-    Movie == "3.1.3_C1_trim" ~ "Breakfast",
-   Movie=="6.3.9_C1_trim" ~ "Cleaning",
-    TRUE ~ Movie  # Keep other values unchanged
-  ))%>%
-  ggplot(aes(x=Time, y=Segmentation_Prob, color=Condition))+facet_wrap(~Movie,ncol =2)+geom_line()+labs(x="Time (s)", y="Segmentation Probability")
-ggsave("~/Library/CloudStorage/Box-Box/DCL_ARCHIVE/Documents/Events/exp159_EyetrackingSEM/master_thesis/figure2.pdf")
-```
+
 
 ## visualization for publication
 ```{r}
@@ -96,7 +85,7 @@ seg_prob %>%
     annotate("text", x = 460, y = 0.2, label = "fine", color = "blue", hjust = 1, vjust = 1, size = 5)+theme(legend.position = "none")+theme(text = element_text(size = 20),
         plot.background = element_rect(color = "white"),
         aspect.ratio = 1)
-ggsave("Seg_Prob_Movie.tiff", units="in", width=7, height=8, dpi=300)
+##ggsave("Seg_Prob_Movie.tiff", units="in", width=7, height=8, dpi=300)
 ```
 
 ### Supplemental Material: Compare two distinct populations
@@ -153,10 +142,10 @@ seg_prob %>%
     labs(x = "Time (s)", y = "Segmentation Probability") +
     scale_color_manual(values = c("first_dataset" = "lightblue", "second_dataset" = "darkblue")) +
     theme_classic() +  # Use a minimal theme
-    annotate("text", x = 460, y = 0.4, label = "Online Participants", color = "lightblue", hjust = 1, vjust = 1, size = 5) +
-    annotate("text", x = 460, y = 0.5, label = "fMRI Participants", color = "darkblue", hjust = 1, vjust = 1, size = 5)+theme(legend.position = "none")+theme(text = element_text(size = 10),
+    annotate("text", x = 460, y = 0.4, label = "Online Participants", color = "lightblue", hjust = 1, vjust = 1, size = 2) +
+    annotate("text", x = 460, y = 0.5, label = "fMRI Participants", color = "darkblue", hjust = 1, vjust = 1, size = 2)+theme(legend.position = "none")+theme(text = element_text(size = 11),
         plot.background = element_rect(color = "white"),
         aspect.ratio = 1)
-ggsave("Seg_Prob_Movie_twodataset.tiff", units="in", width=14, height=8, dpi=300)
+##ggsave("Seg_Prob_Movie_twodataset.tiff", units="in", width=14, height=8, dpi=300)
 
 ```
