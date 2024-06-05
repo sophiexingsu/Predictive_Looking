@@ -67,7 +67,7 @@ visual_data$model <- factor(visual_data$model, levels = c("0s", "1s", "2s", "3s"
 
 ggplot(data=visual_data, aes(x=model, y=Value,color=Parameter,group=Parameter))+geom_point()+geom_line(size=2)+scale_color_manual(values = c("BIC" = "green", "AIC" = "black"),guide = "none") +
 labs(x = "Number of previous seconds of eye data in the predictive model")+annotate("text", x = 5, y = 17775, label = "BIC", color = "green")+annotate("text", x = 5, y = 17700, label = "AIC", color = "black")+theme(text = element_text(size = 15),plot.background = element_rect(color = "white"),aspect.ratio = 1)+theme(legend.position = "none")+theme_classic()
-ggsave("model_fit.tiff", units="in", width=7, height=8, dpi=300)
+##ggsave("model_fit.tiff", units="in", width=7, height=8, dpi=300)
 ```
 
 #Predicitve Looking Error and Segmentation Probabilities 
@@ -90,7 +90,7 @@ PE_data_m10<-PE_data_m10%>%
 ## Segmentation Probabilities
 ```{r}
 frame_rate=59.9
-seg_des<-read.csv("/Users/sophie/Library/CloudStorage/Box-Box/Predictive_Looking/data/segmentation_probability_sampled.csv")
+seg_des<-read.csv("../data/segmentation_probability_sampled.csv")
 seg_des %<>% 
   #dplyr::filter(Movie=="1.2.3_C1_trim")%>%
   mutate(frame=round(Time*frame_rate))%>%
@@ -147,7 +147,7 @@ combined_model_10_scaled %>%
         plot.background = element_rect(color = "white"),
         aspect.ratio = 1)
 
-ggsave("PE_Seg_Prob.tiff", units="in", width=7, height=8, dpi=300)
+##ggsave("PE_Seg_Prob.tiff", units="in", width=7, height=8, dpi=300)
 ```
 
 ### Cross correlation between Predictive Looking Error and Segmentation Probabilities
@@ -175,7 +175,7 @@ for(m in unique(combined_model_10_cross_compare$Movie.x)){
   }
 }
 #print(cross_correlation_results)
-write.csv(cross_correlation_results, "cross_correlation_results.csv")
+##write.csv(cross_correlation_results, "cross_correlation_results.csv")
 ```
 
 
@@ -233,7 +233,7 @@ eye_SEM_visual %>%
         plot.background = element_rect(color = "white"),
         aspect.ratio = 1)
 
-ggsave("Signals_Seg_Prob.tiff", units="in", width=7, height=8, dpi=300)
+##ggsave("Signals_Seg_Prob.tiff", units="in", width=7, height=8, dpi=300)
 ```
 
 ## Statistical Comparison between Predictive Looking Error and Other SEMs' Updating Mechanisms.
